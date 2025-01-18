@@ -3,7 +3,6 @@ import re
 import requests
 import streamlit as st
 from datetime import datetime
-from pathlib import Path
 
 def convert_google_drive_link(link):
     """Convert a Google Drive link to a direct download link."""
@@ -50,27 +49,11 @@ def main():
     # Input field for URLs
     links_input = st.text_area("Paste URLs (comma-separated):", height=150)
 
-    # Input field for directory selection
-    default_path = str(Path.home() / "Downloads")
-    save_path = st.text_input("Select Save Path (Default: Downloads):", value=default_path)
-
     # Button to trigger the download
     if st.button("Download Images"):
         if not links_input.strip():
             st.error("Please provide at least one URL.")
             return
-
-        if not save_path.strip():
-            st.error("Please provide a valid save path.")
-            return
-
-        # Validate and ensure the save path exists
-        if not os.path.exists(save_path):
-            try:
-                os.makedirs(save_path)
-            except Exception as e:
-                st.error(f"Unable to create directory: {e}")
-                return
 
         # Split and process the input links
         links = [link.strip() for link in links_input.split(",") if link.strip()]
@@ -81,6 +64,8 @@ def main():
             st.error("No valid links provided!")
             return
 
+        # Hardcoded save path
+        save_path = r"C:\Users\Rohit Chandaliya\Downloads"
         today_date = datetime.now().strftime("%Y-%m-%d")
         folder_name = f"Cleaning Images {today_date}"
         folder = os.path.join(save_path, folder_name)

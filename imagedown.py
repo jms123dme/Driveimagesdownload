@@ -47,13 +47,32 @@ def main():
     st.title("Image Downloader")
     st.write("Paste your image URLs (comma-separated) below to download them as JPEGs.")
 
+    # Input field for URLs
     links_input = st.text_area("Paste URLs (comma-separated):", height=150)
 
+    # Input field for directory selection
+    default_path = str(Path.home() / "Downloads")
+    save_path = st.text_input("Select Save Path (Default: Downloads):", value=default_path)
+
+    # Button to trigger the download
     if st.button("Download Images"):
         if not links_input.strip():
             st.error("Please provide at least one URL.")
             return
 
+        if not save_path.strip():
+            st.error("Please provide a valid save path.")
+            return
+
+        # Validate and ensure the save path exists
+        if not os.path.exists(save_path):
+            try:
+                os.makedirs(save_path)
+            except Exception as e:
+                st.error(f"Unable to create directory: {e}")
+                return
+
+        # Split and process the input links
         links = [link.strip() for link in links_input.split(",") if link.strip()]
         converted_links = [convert_google_drive_link(link) for link in links]
         converted_links = [link for link in converted_links if link]
@@ -62,11 +81,9 @@ def main():
             st.error("No valid links provided!")
             return
 
-        # Define the Downloads folder path (use Path.home for cross-platform compatibility)
-        downloads_folder = str(Path.home() / "Downloads")
         today_date = datetime.now().strftime("%Y-%m-%d")
         folder_name = f"Cleaning Images {today_date}"
-        folder = os.path.join(downloads_folder, folder_name)
+        folder = os.path.join(save_path, folder_name)
 
         # Create the folder if it doesn't exist
         os.makedirs(folder, exist_ok=True)

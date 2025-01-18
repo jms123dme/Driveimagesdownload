@@ -3,7 +3,7 @@ import re
 import requests
 import streamlit as st
 from datetime import datetime
-from pathlib import Path  # For cross-platform Downloads folder
+from pathlib import Path
 
 def convert_google_drive_link(link):
     """Convert a Google Drive link to a direct download link."""
@@ -62,33 +62,25 @@ def main():
             st.error("No valid links provided!")
             return
 
-        # Ensure the Downloads folder exists
-        try:
-            downloads_folder = str(Path.home() / "Downloads")
-            if not os.path.exists(downloads_folder):
-                st.warning("Downloads folder not found, using fallback directory.")
-                downloads_folder = os.path.join(os.getcwd(), "Downloaded_Images")
-        except Exception as e:
-            st.warning(f"Could not access Downloads folder: {e}")
-            downloads_folder = os.path.join(os.getcwd(), "Downloaded_Images")
-
+        # Define the Downloads folder path (use Path.home for cross-platform compatibility)
+        downloads_folder = str(Path.home() / "Downloads")
         today_date = datetime.now().strftime("%Y-%m-%d")
         folder_name = f"Cleaning Images {today_date}"
         folder = os.path.join(downloads_folder, folder_name)
 
-        # Create folder if it does not exist
+        # Create the folder if it doesn't exist
         os.makedirs(folder, exist_ok=True)
 
+        # Download images
         st.write(f"Downloading images to folder: `{folder}`")
-
         success_count = 0
         for link in converted_links:
             if download_image(link, folder):
                 success_count += 1
 
+        # Display final message
         if success_count:
-            st.success(f"Downloaded {success_count} images to the folder: {folder}")
-            st.write(f"Folder Path: `{folder}`")
+            st.success(f"Downloaded {success_count} images to the folder: `{folder}`")
         else:
             st.error("No images were downloaded.")
 

@@ -18,7 +18,7 @@ def convert_google_drive_link(link):
 
 def sanitize_filename(url):
     """Generate a safe filename from a URL and append .jpeg extension."""
-    filename = re.sub(r"[^/w/-_.]", "_", url.split("/")[-1])  # Replace invalid characters
+    filename = re.sub(r"[^\w\-_.]", "_", url.split("/")[-1])  # Replace invalid characters
     filename = filename[:100]  # Limit filename length to 100 characters
     if not filename.endswith(".jpeg"):
         filename += ".jpeg"
@@ -36,10 +36,11 @@ def download_image(url, folder):
                     f.write(chunk)
             return filepath
         else:
+            st.error(f"Failed to download {url}: HTTP {response.status_code}")
             return None
     except Exception as e:
         st.error(f"Error downloading {url}: {e}")
-    return None
+        return None
 
 def main():
     """Streamlit app to download images."""
@@ -66,23 +67,32 @@ def main():
 
         # Hardcoded save path
         save_path = r"C:/Users/Rohit Chandaliya/Downloads"
+        st.write(f"Save path: `{save_path}`")  # Debugging: Show save path in UI
+
+        # Create a subfolder with today's date
         today_date = datetime.now().strftime("%Y-%m-%d")
         folder_name = f"Cleaning Images {today_date}"
         folder = os.path.join(save_path, folder_name)
 
-        # Create the folder if it doesn't exist
-        os.makedirs(folder, exist_ok=True)
+        # Try creating the folder
+        try:
+            os.makedirs(folder, exist_ok=True)
+        except Exception as e:
+            st.error(f"Failed to create folder `{folder}`: {e}")
+            return
+
+        st.write(f"Downloading images to folder: `{folder}`")  # Debugging: Confirm folder path
 
         # Download images
-        st.write(f"Downloading images to folder: `{folder}`")
         success_count = 0
         for link in converted_links:
             if download_image(link, folder):
                 success_count += 1
 
         # Display final message
-        if success_count:
+        if success_count > 0:
             st.success(f"Downloaded {success_count} images to the folder: `{folder}`")
+            st.write(f"Folder Path: `{folder}`")  # Confirm the folder location
         else:
             st.error("No images were downloaded.")
 

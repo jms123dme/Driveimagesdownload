@@ -2,7 +2,7 @@ import os
 import re
 import requests
 import streamlit as st
-from datetime import datetime
+from pathlib import Path  # For the Downloads directory
 
 def convert_google_drive_link(link):
     """Convert a Google Drive link to a direct download link."""
@@ -25,7 +25,7 @@ def sanitize_filename(url):
     return filename
 
 def download_image(url, folder):
-    """Download an image from a URL to a specified folder."""
+    """Download an image from a URL to the Downloads folder."""
     try:
         response = requests.get(url, stream=True, allow_redirects=True)
         if response.status_code == 200:
@@ -50,40 +50,15 @@ def main():
     # Input field for URLs
     links_input = st.text_area("Paste URLs (comma-separated):", height=150)
 
-    # Input field for save path
-    save_path = st.text_input("Enter Save Path:", placeholder="E.g., C:/Users/YourUsername/Downloads")
-
     # Button to trigger the download
     if st.button("Download Images"):
         if not links_input.strip():
             st.error("Please provide at least one URL.")
             return
 
-        if not save_path.strip():
-            st.error("Please provide a valid save path.")
-            return
-
-        # Validate and ensure the save path exists
-        if not os.path.exists(save_path):
-            try:
-                os.makedirs(save_path)
-            except Exception as e:
-                st.error(f"Unable to create directory: {e}")
-                return
-
-        # Create a subfolder with today's date
-        today_date = datetime.now().strftime("%Y-%m-%d")
-        folder_name = f"Cleaning Images {today_date}"
-        folder = os.path.join(save_path, folder_name)
-
-        # Create the folder if it doesn't exist
-        try:
-            os.makedirs(folder, exist_ok=True)
-        except Exception as e:
-            st.error(f"Failed to create folder `{folder}`: {e}")
-            return
-
-        st.write(f"Downloading images to folder: `{folder}`")  # Debugging: Confirm folder path
+        # Get the Downloads folder path
+        downloads_folder = str(Path.home() / "Downloads")
+        st.write(f"Saving images directly to: `{downloads_folder}`")
 
         # Split and process the input links
         links = [link.strip() for link in links_input.split(",") if link.strip()]
@@ -94,16 +69,15 @@ def main():
             st.error("No valid links provided!")
             return
 
-        # Download images
+        # Download images one by one
         success_count = 0
         for link in converted_links:
-            if download_image(link, folder):
+            if download_image(link, downloads_folder):
                 success_count += 1
 
         # Display final message
         if success_count > 0:
-            st.success(f"Downloaded {success_count} images to the folder: `{folder}`")
-            st.write(f"Folder Path: `{folder}`")  # Confirm the folder location
+            st.success(f"Downloaded {success_count} images directly to: `{downloads_folder}`")
         else:
             st.error("No images were downloaded.")
 

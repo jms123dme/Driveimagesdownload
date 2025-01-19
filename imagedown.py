@@ -50,11 +50,26 @@ def main():
     # Input field for URLs
     links_input = st.text_area("Paste URLs (comma-separated):", height=150)
 
+    # Input field for save path
+    save_path = st.text_input("Enter Save Path:", placeholder="E.g., C:/Users/YourUsername/Downloads")
+
     # Button to trigger the download
     if st.button("Download Images"):
         if not links_input.strip():
             st.error("Please provide at least one URL.")
             return
+
+        if not save_path.strip():
+            st.error("Please provide a valid save path.")
+            return
+
+        # Ensure the save path is valid
+        if not os.path.exists(save_path):
+            try:
+                os.makedirs(save_path)
+            except Exception as e:
+                st.error(f"Unable to create directory: {e}")
+                return
 
         # Split and process the input links
         links = [link.strip() for link in links_input.split(",") if link.strip()]
@@ -65,25 +80,16 @@ def main():
             st.error("No valid links provided!")
             return
 
-        # Hardcoded save path
-        save_path = r"C:/Users/Rohit Chandaliya/Downloads"
-        st.write(f"Save path: `{save_path}`")  # Debugging: Show save path in UI
-
         # Create a subfolder with today's date
         today_date = datetime.now().strftime("%Y-%m-%d")
         folder_name = f"Cleaning Images {today_date}"
         folder = os.path.join(save_path, folder_name)
 
-        # Try creating the folder
-        try:
-            os.makedirs(folder, exist_ok=True)
-        except Exception as e:
-            st.error(f"Failed to create folder `{folder}`: {e}")
-            return
-
-        st.write(f"Downloading images to folder: `{folder}`")  # Debugging: Confirm folder path
+        # Create the folder if it doesn't exist
+        os.makedirs(folder, exist_ok=True)
 
         # Download images
+        st.write(f"Downloading images to folder: `{folder}`")
         success_count = 0
         for link in converted_links:
             if download_image(link, folder):
@@ -92,7 +98,6 @@ def main():
         # Display final message
         if success_count > 0:
             st.success(f"Downloaded {success_count} images to the folder: `{folder}`")
-            st.write(f"Folder Path: `{folder}`")  # Confirm the folder location
         else:
             st.error("No images were downloaded.")
 

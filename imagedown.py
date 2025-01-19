@@ -2,7 +2,7 @@ import os
 import re
 import requests
 import streamlit as st
-from pathlib import Path  # For the Downloads directory
+from datetime import datetime
 
 def convert_google_drive_link(link):
     """Convert a Google Drive link to a direct download link."""
@@ -25,7 +25,7 @@ def sanitize_filename(url):
     return filename
 
 def download_image(url, folder):
-    """Download an image from a URL to the Downloads folder."""
+    """Download an image from a URL to a specified folder."""
     try:
         response = requests.get(url, stream=True, allow_redirects=True)
         if response.status_code == 200:
@@ -50,15 +50,28 @@ def main():
     # Input field for URLs
     links_input = st.text_area("Paste URLs (comma-separated):", height=150)
 
+    # Input field for save path
+    save_path = st.text_input("Enter Folder Path to Save Images:", placeholder="E.g., C:/Users/YourUsername/Downloads/MyImages")
+
     # Button to trigger the download
     if st.button("Download Images"):
         if not links_input.strip():
             st.error("Please provide at least one URL.")
             return
 
-        # Get the Downloads folder path
-        downloads_folder = str(Path.home() / "Downloads")
-        st.write(f"Saving images directly to: `{downloads_folder}`")
+        if not save_path.strip():
+            st.error("Please provide a valid folder path.")
+            return
+
+        # Validate and ensure the save path exists
+        if not os.path.exists(save_path):
+            try:
+                os.makedirs(save_path)
+            except Exception as e:
+                st.error(f"Unable to create directory: {e}")
+                return
+
+        st.write(f"Saving images to folder: `{save_path}`")  # Debugging: Confirm folder path
 
         # Split and process the input links
         links = [link.strip() for link in links_input.split(",") if link.strip()]
@@ -69,15 +82,15 @@ def main():
             st.error("No valid links provided!")
             return
 
-        # Download images one by one
+        # Download images
         success_count = 0
         for link in converted_links:
-            if download_image(link, downloads_folder):
+            if download_image(link, save_path):
                 success_count += 1
 
         # Display final message
         if success_count > 0:
-            st.success(f"Downloaded {success_count} images directly to: `{downloads_folder}`")
+            st.success(f"Downloaded {success_count} images to the folder: `{save_path}`")
         else:
             st.error("No images were downloaded.")
 

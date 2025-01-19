@@ -9,16 +9,16 @@ def convert_google_drive_link(link):
     if "drive.google.com" in link:
         if "id=" in link:
             file_id = link.split("id=")[-1].split("&")[0]
-        elif "\d\" in link:
-            file_id = link.split("\d\")[-1].split("\")[0]
+        elif "/d/" in link:
+            file_id = link.split("/d/")[-1].split("/")[0]
         else:
             return None
-        return f"https:\\drive.google.com\uc?id={file_id}&export=download"
+        return f"https://drive.google.com/uc?id={file_id}&export=download"
     return link
 
 def sanitize_filename(url):
     """Generate a safe filename from a URL and append .jpeg extension."""
-    filename = re.sub(r"[^\w\-_.]", "_", url.split("\")[-1])  # Replace invalid characters
+    filename = re.sub(r"[^/w/-_.]", "_", url.split("/")[-1])  # Replace invalid characters
     filename = filename[:100]  # Limit filename length to 100 characters
     if not filename.endswith(".jpeg"):
         filename += ".jpeg"
@@ -65,7 +65,7 @@ def main():
             return
 
         # Hardcoded save path
-        save_path = r"C:\Users\Rohit Chandaliya\Downloads"
+        save_path = r"C:/Users/Rohit Chandaliya/Downloads"
         today_date = datetime.now().strftime("%Y-%m-%d")
         folder_name = f"Cleaning Images {today_date}"
         folder = os.path.join(save_path, folder_name)

@@ -63,13 +63,27 @@ def main():
             st.error("Please provide a valid save path.")
             return
 
-        # Ensure the save path is valid
+        # Validate and ensure the save path exists
         if not os.path.exists(save_path):
             try:
                 os.makedirs(save_path)
             except Exception as e:
                 st.error(f"Unable to create directory: {e}")
                 return
+
+        # Create a subfolder with today's date
+        today_date = datetime.now().strftime("%Y-%m-%d")
+        folder_name = f"Cleaning Images {today_date}"
+        folder = os.path.join(save_path, folder_name)
+
+        # Create the folder if it doesn't exist
+        try:
+            os.makedirs(folder, exist_ok=True)
+        except Exception as e:
+            st.error(f"Failed to create folder `{folder}`: {e}")
+            return
+
+        st.write(f"Downloading images to folder: `{folder}`")  # Debugging: Confirm folder path
 
         # Split and process the input links
         links = [link.strip() for link in links_input.split(",") if link.strip()]
@@ -80,16 +94,7 @@ def main():
             st.error("No valid links provided!")
             return
 
-        # Create a subfolder with today's date
-        today_date = datetime.now().strftime("%Y-%m-%d")
-        folder_name = f"Cleaning Images {today_date}"
-        folder = os.path.join(save_path, folder_name)
-
-        # Create the folder if it doesn't exist
-        os.makedirs(folder, exist_ok=True)
-
         # Download images
-        st.write(f"Downloading images to folder: `{folder}`")
         success_count = 0
         for link in converted_links:
             if download_image(link, folder):
@@ -98,6 +103,7 @@ def main():
         # Display final message
         if success_count > 0:
             st.success(f"Downloaded {success_count} images to the folder: `{folder}`")
+            st.write(f"Folder Path: `{folder}`")  # Confirm the folder location
         else:
             st.error("No images were downloaded.")
 
